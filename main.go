@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"math/rand"
 	"net/http"
 	"strconv"
@@ -36,7 +37,24 @@ func (course *Course) isEmpty() bool {
 }
 
 func main() {
+	fmt.Println("Courses API")
+	router := mux.NewRouter()
 
+	// Seeding Data
+	courses = append(courses, Course{CourseId: "2", CourseName: "ReactJS", CoursePrice: 299, Author: &Author{FullName: "Misael", Website: "http://ripe-cross.info"}})
+	courses = append(courses, Course{CourseId: "4", CourseName: "MERN Stack", CoursePrice: 399, Author: &Author{FullName: "Sallie", Website: "https://wary-firm.net"}})
+	courses = append(courses, Course{CourseId: "6", CourseName: "Angular", CoursePrice: 199, Author: &Author{FullName: "Isabelle", Website: "http://robust-fireplace.com"}})
+
+	// Routing
+	router.HandleFunc("/", serveHome).Methods("GET")
+	router.HandleFunc("/courses", getAllCourses).Methods("GET")
+	router.HandleFunc("/course/{id}", getOneCourse).Methods("GET")
+	router.HandleFunc("/course", createOneCourse).Methods("POST")
+	router.HandleFunc("/course/{id}", updateOneCourse).Methods("PUT")
+	router.HandleFunc("/course/{id}", deleteOneCourse).Methods("DELETE")
+
+	// Listen to Port 4000
+	log.Fatal(http.ListenAndServe(":4000", router))
 }
 
 // Controllers
@@ -125,4 +143,28 @@ func updateOneCourse(w http.ResponseWriter, r *http.Request) {
 
 	// If id not found
 	json.NewEncoder(w).Encode("Course id not found.")
+	return
+}
+
+// Delete One Course
+func deleteOneCourse(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("Delete one Course")
+	w.Header().Set("Content-Type", "application/json")
+
+	// Grab id from request
+	params := mux.Vars(r)
+
+	// Loop through courses, find matching id, remove the value
+	for index, course := range courses {
+		if course.CourseId == params["id"] {
+			courses = append(courses[:index], courses[index+1:]...)
+			msg := fmt.Sprintf("Course with id: %v deleted", params["id"])
+			json.NewEncoder(w).Encode(msg)
+			break
+		}
+	}
+
+	// If id not found
+	json.NewEncoder(w).Encode("Course id not found.")
+	return
 }
