@@ -138,6 +138,7 @@ func updateOneCourse(w http.ResponseWriter, r *http.Request) {
 			course.CourseId = params["id"]
 			courses = append(courses, course)
 			json.NewEncoder(w).Encode(course)
+			return
 		}
 	}
 
@@ -160,7 +161,7 @@ func deleteOneCourse(w http.ResponseWriter, r *http.Request) {
 			courses = append(courses[:index], courses[index+1:]...)
 			msg := fmt.Sprintf("Course with id: %v deleted", params["id"])
 			json.NewEncoder(w).Encode(msg)
-			break
+			return
 		}
 	}
 
